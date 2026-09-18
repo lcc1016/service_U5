@@ -5,87 +5,21 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>五專服務時數換算計算器</title>
     <style>
-      body {
-        font-family: Arial, sans-serif;
-        padding: 20px;
-        background-color: #f5f5f5;
-        color: #333;
-      }
-      .container {
-        max-width: 450px;
-        margin: 0 auto;
-        background: white;
-        padding: 25px;
-        border-radius: 8px;
-        box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-      }
-      h2 {
-        margin-top: 0;
-        color: #2c3e50;
-        text-align: center;
-      }
-      .form-group {
-        margin-bottom: 20px;
-      }
-      label {
-        display: block;
-        margin-bottom: 8px;
-        font-weight: bold;
-      }
-      input[type="number"] {
-        width: 100%;
-        padding: 10px;
-        font-size: 16px;
-        border: 1px solid #ccc;
-        border-radius: 4px;
-        box-sizing: border-box;
-      }
-      button {
-        width: 100%;
-        padding: 12px;
-        font-size: 16px;
-        background-color: #4CAF50;
-        color: white;
-        border: none;
-        border-radius: 4px;
-        cursor: pointer;
-        font-weight: bold;
-      }
-      button:hover {
-        background-color: #45a049;
-      }
-      .result {
-        margin-top: 20px;
-        padding: 15px;
-        background-color: #f8f9fa;
-        border: 1px solid #e9ecef;
-        border-radius: 6px;
-      }
-      .result h3 {
-        margin-top: 0;
-        color: #1a252f;
-      }
-      .result h4 {
-        margin: 10px 0 5px 0;
-        color: #2c3e50;
-      }
-      .result ul {
-        margin: 5px 0 15px 20px;
-        padding: 0;
-      }
-      .result li {
-        margin-bottom: 5px;
-      }
-      .error {
-        color: #d9534f;
-        margin-top: 10px;
-        font-weight: bold;
-      }
-      .loading {
-        margin-top: 15px;
-        text-align: center;
-        color: #666;
-      }
+      body { font-family: Arial, sans-serif; padding: 20px; background-color: #f5f5f5; color: #333; }
+      .container { max-width: 450px; margin: 0 auto; background: white; padding: 25px; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
+      h2 { margin-top: 0; color: #2c3e50; text-align: center; }
+      .form-group { margin-bottom: 20px; }
+      label { display: block; margin-bottom: 8px; font-weight: bold; }
+      input[type="number"] { width: 100%; padding: 10px; font-size: 16px; border: 1px solid #ccc; border-radius: 4px; box-sizing: border-box; }
+      button { width: 100%; padding: 12px; font-size: 16px; background-color: #4CAF50; color: white; border: none; border-radius: 4px; cursor: pointer; font-weight: bold; }
+      button:hover { background-color: #45a049; }
+      .result { margin-top: 20px; padding: 15px; background-color: #f8f9fa; border: 1px solid #e9ecef; border-radius: 6px; }
+      .result h3 { margin-top: 0; color: #1a252f; }
+      .result h4 { margin: 10px 0 5px 0; color: #2c3e50; }
+      .result ul { margin: 5px 0 15px 20px; padding: 0; }
+      .result li { margin-bottom: 5px; }
+      .error { color: #d9534f; margin-top: 10px; font-weight: bold; }
+      .loading { margin-top: 15px; text-align: center; color: #666; }
     </style>
   </head>
   <body>
@@ -107,6 +41,43 @@
     <script>
       const GAS_WEB_APP_URL = "https://script.google.com/macros/s/AKfycbwYh7WPp5MGXPgvXXQm2BOHUgqE1_NbffedtEs4FA_DjJutXUpIbaG4_ch1oJCd_mbN/exec";
 
+      // 全域 Callback 函數，供 JSONP 接收資料
+      window.handleResponse = function(res) {
+        var loadingDiv = document.getElementById('loading');
+        var errorDiv = document.getElementById('error');
+        var resultDiv = document.getElementById('result');
+
+        loadingDiv.style.display = 'none';
+
+        if (res.status === 'error') {
+          errorDiv.innerText = '錯誤：' + res.message;
+          return;
+        }
+
+        var data = res.data;
+        resultDiv.innerHTML = 
+          '<h3>計算結果 (學期數：' + data.semesters + ')</h3>' +
+          '<hr>' +
+          '<h4>【' + data.excellent.name + '】</h4>' +
+          '<ul>' +
+            '<li>幹部獲得積分：' + data.excellent.leaderPoint + ' 分</li>' +
+            '<li>尚缺多元學習分數：' + data.excellent.remainingScore + ' 分</li>' +
+            '<li>尚缺服務時數：<b>' + data.excellent.remainingHours + '</b> 小時</li>' +
+          '</ul>' +
+          '<hr>' +
+          '<h4>【' + data.joint.name + '】</h4>' +
+          '<ul>' +
+            '<li>幹部獲得積分：' + data.joint.leaderPoint + ' 分</li>' +
+            '<li>尚缺多元學習分數：' + data.joint.remainingScore + ' 分</li>' +
+            '<li>尚缺服務時數：<b>' + data.joint.remainingHours + '</b> 小時</li>' +
+          '</ul>';
+        resultDiv.style.display = 'block';
+
+        // 移除動態建立的 script 標籤
+        var oldScript = document.getElementById('jsonp-script');
+        if (oldScript) oldScript.remove();
+      };
+
       document.getElementById('calcBtn').addEventListener('click', function() {
         var semestersInput = document.getElementById('semesters').value;
         var resultDiv = document.getElementById('result');
@@ -123,44 +94,20 @@
 
         loadingDiv.style.display = 'block';
 
-        fetch(GAS_WEB_APP_URL + '?semesters=' + encodeURIComponent(semestersInput), {
-          method: 'GET',
-          redirect: 'follow'
-        })
-        .then(function(response) {
-          return response.json();
-        })
-        .then(function(res) {
-          loadingDiv.style.display = 'none';
-          if (res.status === 'error') {
-            errorDiv.innerText = '錯誤：' + res.message;
-            return;
-          }
+        // 建立 JSONP Script 標籤（徹底避開 CORS 阻擋）
+        var oldScript = document.getElementById('jsonp-script');
+        if (oldScript) oldScript.remove();
 
-          var data = res.data;
-          resultDiv.innerHTML = 
-            '<h3>計算結果 (學期數：' + data.semesters + ')</h3>' +
-            '<hr>' +
-            '<h4>【' + data.excellent.name + '】</h4>' +
-            '<ul>' +
-              '<li>幹部獲得積分：' + data.excellent.leaderPoint + ' 分</li>' +
-              '<li>尚缺多元學習分數：' + data.excellent.remainingScore + ' 分</li>' +
-              '<li>尚缺服務時數：<b>' + data.excellent.remainingHours + '</b> 小時</li>' +
-            '</ul>' +
-            '<hr>' +
-            '<h4>【' + data.joint.name + '】</h4>' +
-            '<ul>' +
-              '<li>幹部獲得積分：' + data.joint.leaderPoint + ' 分</li>' +
-              '<li>尚缺多元學習分數：' + data.joint.remainingScore + ' 分</li>' +
-              '<li>尚缺服務時數：<b>' + data.joint.remainingHours + '</b> 小時</li>' +
-            '</ul>';
-          resultDiv.style.display = 'block';
-        })
-        .catch(function(err) {
+        var script = document.createElement('script');
+        script.id = 'jsonp-script';
+        script.src = GAS_WEB_APP_URL + '?semesters=' + encodeURIComponent(semestersInput) + '&callback=handleResponse';
+        
+        script.onerror = function() {
           loadingDiv.style.display = 'none';
-          errorDiv.innerText = '網路連線失敗或伺服器無回應。';
-          console.error('Fetch error:', err);
-        });
+          errorDiv.innerText = '伺服器無回應，請確認 GAS 部署為「新版本」且權限為「所有人」。';
+        };
+
+        document.body.appendChild(script);
       });
     </script>
   </body>
