@@ -105,7 +105,6 @@
     </div>
 
     <script>
-      // ⚠️ 請在此處貼上你部署好的 Google Apps Script Web App 網址 ⚠️
       const GAS_WEB_APP_URL = "https://script.google.com/macros/s/AKfycbwYh7WPp5MGXPgvXXQm2BOHUgqE1_NbffedtEs4FA_DjJutXUpIbaG4_ch1oJCd_mbN/exec";
 
       document.getElementById('calcBtn').addEventListener('click', function() {
@@ -124,43 +123,45 @@
 
         loadingDiv.style.display = 'block';
 
-       // 加入 redirect: 'follow' 解決 Google 轉址引起的跨域錯誤
-  fetch(GAS_WEB_APP_URL + '?semesters=' + encodeURIComponent(semestersInput), {
-    method: 'GET',
-    redirect: 'follow'
-  })
-  .then(function(response) {
-    return response.json();
-  })
-  .then(function(res) {
-    loadingDiv.style.display = 'none';
-    if (res.status === 'error') {
-      errorDiv.innerText = '錯誤：' + res.message;
-      return;
-    }
+        fetch(GAS_WEB_APP_URL + '?semesters=' + encodeURIComponent(semestersInput), {
+          method: 'GET',
+          redirect: 'follow'
+        })
+        .then(function(response) {
+          return response.json();
+        })
+        .then(function(res) {
+          loadingDiv.style.display = 'none';
+          if (res.status === 'error') {
+            errorDiv.innerText = '錯誤：' + res.message;
+            return;
+          }
 
-    var data = res.data;
-    resultDiv.innerHTML = 
-      '<h3>計算結果 (學期數：' + data.semesters + ')</h3>' +
-      '<hr>' +
-      '<h4>【' + data.excellent.name + '】</h4>' +
-      '<ul>' +
-        '<li>幹部獲得積分：' + data.excellent.leaderPoint + ' 分</li>' +
-        '<li>尚缺多元學習分數：' + data.excellent.remainingScore + ' 分</li>' +
-        '<li>尚缺服務時數：<b>' + data.excellent.remainingHours + '</b> 小時</li>' +
-      '</ul>' +
-      '<hr>' +
-      '<h4>【' + data.joint.name + '】</h4>' +
-      '<ul>' +
-        '<li>幹部獲得積分：' + data.joint.leaderPoint + ' 分</li>' +
-        '<li>尚缺多元學習分數：' + data.joint.remainingScore + ' 分</li>' +
-        '<li>尚缺服務時數：<b>' + data.joint.remainingHours + '</b> 小時</li>' +
-      '</ul>';
-    resultDiv.style.display = 'block';
-  })
-  .catch(function(err) {
-    loadingDiv.style.display = 'none';
-    errorDiv.innerText = '網路連線失敗或伺服器無回應。';
-    console.error('Fetch error:', err);
-  });
-});
+          var data = res.data;
+          resultDiv.innerHTML = 
+            '<h3>計算結果 (學期數：' + data.semesters + ')</h3>' +
+            '<hr>' +
+            '<h4>【' + data.excellent.name + '】</h4>' +
+            '<ul>' +
+              '<li>幹部獲得積分：' + data.excellent.leaderPoint + ' 分</li>' +
+              '<li>尚缺多元學習分數：' + data.excellent.remainingScore + ' 分</li>' +
+              '<li>尚缺服務時數：<b>' + data.excellent.remainingHours + '</b> 小時</li>' +
+            '</ul>' +
+            '<hr>' +
+            '<h4>【' + data.joint.name + '】</h4>' +
+            '<ul>' +
+              '<li>幹部獲得積分：' + data.joint.leaderPoint + ' 分</li>' +
+              '<li>尚缺多元學習分數：' + data.joint.remainingScore + ' 分</li>' +
+              '<li>尚缺服務時數：<b>' + data.joint.remainingHours + '</b> 小時</li>' +
+            '</ul>';
+          resultDiv.style.display = 'block';
+        })
+        .catch(function(err) {
+          loadingDiv.style.display = 'none';
+          errorDiv.innerText = '網路連線失敗或伺服器無回應。';
+          console.error('Fetch error:', err);
+        });
+      });
+    </script>
+  </body>
+</html>
