@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>五專服務時數換算計算器</title>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        padding: 20px;
+        background-color: #f5f5f5;
+        color: #333;
+      }
+      .container {
+        max-width: 450px;
+        margin: 0 auto;
+        background: white;
+        padding: 25px;
+        border-radius: 8px;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+      }
+      h2 {
+        margin-top: 0;
+        color: #2c3e50;
+        text-align: center;
+      }
+      .form-group {
+        margin-bottom: 20px;
+      }
+      label {
+        display: block;
+        margin-bottom: 8px;
+        font-weight: bold;
+      }
+      input[type="number"] {
+        width: 100%;
+        padding: 10px;
+        font-size: 16px;
+        border: 1px solid #ccc;
+        border-radius: 4px;
+        box-sizing: border-box;
+      }
+      button {
+        width: 100%;
+        padding: 12px;
+        font-size: 16px;
+        background-color: #4CAF50;
+        color: white;
+        border: none;
+        border-radius: 4px;
+        cursor: pointer;
+        font-weight: bold;
+      }
+      button:hover {
+        background-color: #45a049;
+      }
+      .result {
+        margin-top: 20px;
+        padding: 15px;
+        background-color: #f8f9fa;
+        border: 1px solid #e9ecef;
+        border-radius: 6px;
+      }
+      .result h3 {
+        margin-top: 0;
+        color: #1a252f;
+      }
+      .result h4 {
+        margin: 10px 0 5px 0;
+        color: #2c3e50;
+      }
+      .result ul {
+        margin: 5px 0 15px 20px;
+        padding: 0;
+      }
+      .result li {
+        margin-bottom: 5px;
+      }
+      .error {
+        color: #d9534f;
+        margin-top: 10px;
+        font-weight: bold;
+      }
+      .loading {
+        margin-top: 15px;
+        text-align: center;
+        color: #666;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <h2>五專服務時數換算計算器</h2>
+
+      <div class="form-group">
+        <label for="semesters">擔任幹部學期數：</label>
+        <input type="number" id="semesters" min="0" max="100" placeholder="請輸入學期數 (數字)">
+      </div>
+      
+      <button type="button" id="calcBtn">開始計算</button>
+
+      <div id="loading" class="loading" style="display:none;">正在計算中，請稍候...</div>
+      <div id="error" class="error"></div>
+      <div id="result" class="result" style="display:none;"></div>
+    </div>
+
+    <script>
+      // ⚠️ 請在此處貼上你部署好的 Google Apps Script Web App 網址 ⚠️
+      const GAS_WEB_APP_URL = "https://script.google.com/macros/s/AKfycbwYh7WPp5MGXPgvXXQm2BOHUgqE1_NbffedtEs4FA_DjJutXUpIbaG4_ch1oJCd_mbN/exec";
+
+      document.getElementById('calcBtn').addEventListener('click', function() {
+        var semestersInput = document.getElementById('semesters').value;
+        var resultDiv = document.getElementById('result');
+        var errorDiv = document.getElementById('error');
+        var loadingDiv = document.getElementById('loading');
+
+        errorDiv.innerText = '';
+        resultDiv.style.display = 'none';
+
+        if (semestersInput === '') {
+          errorDiv.innerText = '請先輸入學期數！';
+          return;
+        }
+
+        loadingDiv.style.display = 'block';
+
+        // 使用 fetch API 發送 GET 請求給 Apps Script
+        fetch(GAS_WEB_APP_URL + '?semesters=' + encodeURIComponent(semestersInput))
+          .then(function(response) {
+            return response.json();
+          })
+          .then(function(res) {
+            loadingDiv.style.display = 'none';
+            if (res.status === 'error') {
+              errorDiv.innerText = '錯誤：' + res.message;
+              return;
+            }
+
+            var data = res.data;
+            resultDiv.innerHTML = 
+              '<h3>計算結果 (學期數：' + data.semesters + ')</h3>' +
+              '<hr>' +
+              '<h4>【' + data.excellent.name + '】</h4>' +
+              '<ul>' +
+                '<li>幹部獲得積分：' + data.excellent.leaderPoint + ' 分</li>' +
+                '<li>尚缺多元學習分數：' + data.excellent.remainingScore + ' 分</li>' +
+                '<li>尚缺服務時數：<b>' + data.excellent.remainingHours + '</b> 小時</li>' +
+              '</ul>' +
+              '<hr>' +
+              '<h4>【' + data.joint.name + '】</h4>' +
+              '<ul>' +
+                '<li>幹部獲得積分：' + data.joint.leaderPoint + ' 分</li>' +
+                '<li>尚缺多元學習分數：' + data.joint.remainingScore + ' 分</li>' +
+                '<li>尚缺服務時數：<b>' + data.joint.remainingHours + '</b> 小時</li>' +
+              '</ul>';
+            resultDiv.style.display = 'block';
+          })
+          .catch(function(err) {
+            loadingDiv.style.display = 'none';
+            errorDiv.innerText = '網路連線失敗或伺服器無回應。';
+            console.error(err);
+          });
+      });
+    </script>
+  </body>
+</html>
